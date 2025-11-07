@@ -1,0 +1,40 @@
+name: CI/CD Pipeline (OIDC)
+
+permissions:
+  id-token: write    # allow GitHub to mint an OIDC id token for this run
+  contents: read     # least-privilege repo access
+
+on:
+  push:
+    branches: [ main ]
+
+env:
+  BUCKET_NAME: ai-static-site-2025-tc   # replace with your bucket or use repo variable
+  AWS_REGION: us-east-1
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify site files
+        run: |
+          if [ ! -f site/index.html ]; then
+            echo "Error: site/index.html not found"
+            exit 1
+          fi
+          echo "Site verification passed"
+          echo "Preview (first 10 lines):"
+          head -n 10 site/index.html || true
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::<account-id>:role/GitHubS3DeployRole
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy to S3
+        run: aws s3 sync site/ s3://${{ env.BUCKET_NAME }} --delete
