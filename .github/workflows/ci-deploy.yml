@@ -6,7 +6,7 @@ permissions:
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
 
 env:
   BUCKET_NAME: ai-static-site-2025-tc   # replace with your bucket or use repo variable
@@ -33,8 +33,8 @@ jobs:
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::<account-id>:role/GitHubS3DeployRole
-          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::660633971866:role/GitHubS3DeployRole
+          aws-region: us-east-1
 
       - name: Deploy to S3
-        run: aws s3 sync site/ s3://${{ env.BUCKET_NAME }} --delete
+        run: aws s3 sync site/ s3://ai-static-site-2025-tc --delete
